@@ -24,42 +24,33 @@ class AdherentController extends Controller
 
     public function dashboard()
     {
-        // Check if the user is authenticated
         if (!Auth::check()) {
             return redirect('/login'); // Redirect to login if not authenticated
         }
 
-        // Check if the authenticated user has the 'adherent' role
         if (!Auth::user()->hasRole('adherent')) {
             return redirect('/')->with('error', 'You do not have access to this page.'); // Redirect if not adherent
         }
 
-        // Fetch all packs to pass to the view
         $packs = Pack::all();
 
-        // Return the dashboard view for adherents
         return view('adherents.dashboard', compact('packs'));
     }
 
-    // Example of an admin dashboard method (to restrict access)
     public function adminDashboard()
     {
         if (!Auth::check() || Auth::user()->hasRole('adherent')) {
-            // Redirect if not authenticated or if the user is an adherent
             return redirect('/')->with('error', 'You do not have access to this page.');
         }
 
-        // Admin logic here...
         return view('admin.dashboard');
     }
 
-    // Show the form for creating a new resource
     public function create()
     {
         return view('adherents.create');
     }
 
-    // Store a newly created resource in storage
     public function store(Request $request)
     {
         $request->validate([
@@ -74,7 +65,6 @@ class AdherentController extends Controller
         // Create Adherent
         $adherent = Adherent::create($request->only(['nom', 'prenom', 'date_naissance', 'cin']));
 
-        // Create User and link to Adherent
         $user = User::create([
             'name' => $request->nom . ' ' . $request->prenom,
             'email' => $request->email,
@@ -91,7 +81,6 @@ class AdherentController extends Controller
         return redirect()->route('adherents.index')->with('success', 'Adherent and User created successfully with the "adherent" role.');
     }
 
-    // Remove the specified resource from storage
     public function destroy(Adherent $adherent)
     {
         if ($adherent->user) {
@@ -102,7 +91,7 @@ class AdherentController extends Controller
         return redirect()->route('adherents.index')->with('success', 'Adherent and User deleted successfully.');
     }
 
-    // Show the form for creating a new subscription
+    //  form for creating a new subscription
     public function createSubscription($userId)
     {
         $user = User::with('adherent')->find($userId);
@@ -125,7 +114,7 @@ class AdherentController extends Controller
         ]);
     }
 
-    // Store a newly created subscription
+   
     public function storeSubscription(Request $request)
     {
         $request->validate([
@@ -179,36 +168,30 @@ class AdherentController extends Controller
         $request->validate([
             'adherent_id' => 'required|exists:adherents,id',
             'pack_id' => 'required|exists:packs,id',
-            'cours_id' => 'sometimes|array', // Make courses optional
+            'cours_id' => 'sometimes|array',
             'cours_id.*' => 'exists:cours,id',
             'types_de_paiment' => 'required|in:cache,virement,carte_bancaire',
         ]);
     
-        // Find the selected pack
         $pack = Pack::find($request->pack_id);
         
-        // Initialize course total to 0
         $coursMontants = 0;
     
-        // Check if courses are selected
         if ($request->has('cours_id')) {
-            // Get the total amount for the selected courses
             $coursMontants = Cours::whereIn('id', $request->cours_id)->pluck('prix')->sum();
         }
     
-        // Retrieve the user linked to the selected adherent
         $user = User::where('id_adherent', $request->adherent_id)->first();
     
         // Create the payment record
         Paiement::create([
-            'user_id' => $user->id, // Use the user ID linked to the selected adherent
+            'user_id' => $user->id,
             'date_de_paiment' => now(),
-            'pack_montant' => $pack->prix, // Store the pack amount
-            'cours_montant' => $coursMontants, // Store the total course amount (0 if no courses selected)
+            'pack_montant' => $pack->prix, 
+            'cours_montant' => $coursMontants, //  (0 if no courses selected)
             'types_de_paiment' => $request->types_de_paiment,
         ]);
     
-        // Redirect back to the adherents index with a success message
         return redirect()->route('adherents.index')->with('success', 'Payment created successfully.');
     }
 }
