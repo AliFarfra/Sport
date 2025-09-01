@@ -47,21 +47,4 @@ Serve the application:
 php artisan serve
 Open http://127.0.0.1:8000/
 
-Usage
-Go to /members to see the list of gym members.
-
-You can extend the app to add Trainers, Classes, Attendance, or Payments.
-
-Contributing
-Fork the repository
-
-Create your feature branch (git checkout -b feature/new-feature)
-
-Commit your changes (git commit -m 'Add new feature')
-
-Push to the branch (git push origin feature/new-feature)
-
-Open a Pull Request
-
-License
-This project is open-sourced under the MIT license.
+this my first project with larvel so it may bad logic 
